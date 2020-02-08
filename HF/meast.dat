@@ -1,0 +1,49 @@
+#设置 EW11 RS485 口轮询命令， 此处添加两个做演示
+
+#读从0x0000开始的16个寄存器地址
+cmd01=[0x23,0x03,0x00,0x00,0x00,0x10,0xBD,0x7B]
+#读从0x2000开始的16个寄存器地址
+cmd02=[0x23,0x03,0x20,0x00,0x00,0x10,0xB6,0xBB]
+#读从0x4000开始的02个寄存器地址
+cmd03=[0x23,0x03,0x40,0x00,0x00,0x02,0xD7,0x49]
+
+timeCount=0
+flag=0
+
+#将 EW11 RS485 口接收到的数据加一个自定义帧头 AA 后发送到云端
+RECV UART uart0
+	DATA=INPUT
+	DATA_S=[0X5A,0X5A,0X5A,0X5A]
+	IF(flag==1)
+		DATA_S=DATA_S+[0x01]+DATA
+	END
+	IF(flag==2)
+		DATA_S=DATA_S+[0x02]+DATA
+	END
+	IF(flag==3)
+		DATA_S=DATA_S+[0x03]+DATA
+	END
+	SEND(SOCK,netp,DATA_S)
+	RETURN(FALSE)
+END
+
+#设置 定时器， 单位 ms
+TIMER HeartBeat 1000
+	timeCount=timeCount+1
+#	IF(timeCount==1)
+#		flag=1
+#		SEND(UART,uart0,cmd01)
+#	END
+	IF(timeCount==2)
+		flag=2
+		SEND(UART,uart0,cmd02)
+	END
+	IF(timeCount==4)
+		flag=3
+		SEND(UART,uart0,cmd03)
+	END
+	IF(timeCount==10)
+		flag=0
+		timeCount=0
+	END
+END
