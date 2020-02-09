@@ -14,6 +14,14 @@ TcpThread::TcpThread(int clientSocket, sockaddr_in clientAddr)
 	m_clientSocket = clientSocket;
     m_clientAddr = clientAddr;
     
+    
+    // 连接数据库
+    char ip[] = "127.0.0.1";
+    char user[] = "ddsu666";
+    char pass[] = "NnPn35Kcje5Azkc5";
+    char db_name[] = "ddsu666_db";
+    m_db.connectDB(ip, user, pass, db_name);
+
 }
 TcpThread::~TcpThread()
 {
@@ -143,6 +151,12 @@ void TcpThread::DataAnalysis1(const char* pBuff)
 	unsigned int iBAud = HextoDec(pBuff, 24, 2);
 	LOG(INFO) << "[" << m_modbusDevId << "] UcodE:" << iUcodE << ",  REV:" << iREV << ",  Addr:" << iAddr << ",  BAud:" << iBAud;
 
+    // 创建数据表
+    sprintf(m_battery_table_name, "BatteryData_%d", m_modbusDevId);
+    sprintf(m_energy_table_name, "EnergyData_%d", m_modbusDevId);
+    m_db.connectBatteryDataTable(m_battery_table_name);
+    m_db.connectEnergyDataTable(m_energy_table_name);
+    
 	m_sendTestFlag = 0;
 }
 void TcpThread::DataAnalysis2(const char* pBuff)
@@ -168,12 +182,18 @@ void TcpThread::DataAnalysis2(const char* pBuff)
     
 	LOG(INFO) << "[" << m_modbusDevId << "] V:" << *fV << "V,  I:" << *fI << "A,  "
         << "P:" << *fP1 << "kw " << *fP2 << "kw " << *fP3 << "kw,  PF:" << *fPF << " F:" << *fF << "Hz";
+    
+    //将用户信息添加到数据库
+    m_db.addDate(m_battery_table_name, *fV, *fI, *fP1, *fP2, *fP3, *fPF, *fF);
 }
 void TcpThread::DataAnalysis3(const char* pBuff)
 {
 	unsigned int iImpEp = HextoDec(pBuff, 0, 4);
 	float* fImpEp = (float*)& iImpEp;
 	LOG(INFO) << "[" << m_modbusDevId << "] ImpEp:" << *fImpEp << "Kwh";
+    
+    //将用户信息添加到数据库
+    m_db.addDate(m_energy_table_name, *fImpEp);
 }
 
 

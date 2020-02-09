@@ -13,6 +13,8 @@
 //#include <thread>
 #endif
 
+#include "MyDB.h"
+
 class TcpThread { // 多线程类
 public:
 	TcpThread(int clientSocket, sockaddr_in clientAddr);
@@ -36,5 +38,9 @@ private:
 	sockaddr_in m_clientAddr; // 结构体：存储客户端的相关信息:端口号和IP地址s
 	int m_sendTestFlag;
 	int m_sendFlag;
+    
+    MyDB m_db;      // 数据库 
+    char m_battery_table_name[64];
+    char m_energy_table_name[64];
 };
 

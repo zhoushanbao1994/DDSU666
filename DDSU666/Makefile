@@ -13,7 +13,7 @@ TARGET  := test
 #compile and lib parameter
 #编译参数
 CC      := g++
-LIBS    := -lpthread
+LIBS    := -lpthread -L/usr/lib64/mysql -lmysqlclient
 LDFLAGS := 
 DEFINES :=
 INCLUDE := -I.
